@@ -11,7 +11,8 @@ def head(get_iter, n=10):
 
 
 def section(path, fun, args=[]):
-    print(f"# {fun}")
+    expanded = ", ".join(map(str, args))
+    print(f"# {fun}({expanded})")
     corpus = vecto.corpus.DirCorpus(path)
     get_iter = eval(f"corpus.{fun}")
     print("```")
