@@ -22,15 +22,15 @@ def section(path, fun, args=[]):
 
 
 def main():
-    path = "../data/nlp"
+    corpora_path = "../data/nlp/corpora"
     tokenizer = vecto.corpus.tokenization.DEFAULT_TOKENIZER
     sequence_length = 4
 
-    section(path, "get_token_iterator", args=[tokenizer])
-    section(path, "get_line_iterator")
-    section(path, "get_sentence_iterator", args=[tokenizer])
-    section(path, "get_sequence_iterator", args=[sequence_length, tokenizer])
-    section(path, "get_sliding_window_iterator", args=[2, 3, tokenizer])
+    section(corpora_path, "get_token_iterator", args=[tokenizer])
+    section(corpora_path, "get_line_iterator")
+    section(corpora_path, "get_sentence_iterator", args=[tokenizer])
+    section(corpora_path, "get_sequence_iterator", args=[sequence_length, tokenizer])
+    section(corpora_path, "get_sliding_window_iterator", args=[2, 3, tokenizer])
 
 
 if __name__ == "__main__":
