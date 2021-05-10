@@ -4,10 +4,10 @@ import vecto.vocabulary
 def main():
     v = vecto.vocabulary.Vocabulary()
 
-    path = "../data/nlp/BNC/bnc.txt"
-    v.load_from_list(path)
+    path = "../data/nlp/vocabs/bnc/m10/"
+    v.load(path)
 
-    print(v.lst_words)
+    print(v.lst_words[:10])
 
 
 if __name__ == "__main__":
