@@ -1,6 +1,11 @@
 import vecto.vocabulary
 
 
+def pprint(word, vocab):
+    idx = vocab.get_id(word)
+    print(f"index of {word}: {idx}")
+
+
 def main():
     v = vecto.vocabulary.Vocabulary()
 
@@ -10,13 +15,10 @@ def main():
     print(v.lst_words[:10])
 
     for word in ["one", "said", "like"]:
-        idx = v.get_id(word)
-        print(f"index of {word}: {idx}")
+        pprint(word, v)
 
-    word = "megszentsegtelenethetetleneskedeseitekert"
-    idx = v.get_id(word)
-    print(f"index of {word}: {idx}")
-    print(len(word))
+    pprint("megszentsegtelenethetetleneskedeseitekert", v)
+    pprint("[UNK]", v)
 
 
 if __name__ == "__main__":
