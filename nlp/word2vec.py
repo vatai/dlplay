@@ -20,7 +20,10 @@ def main(args):
     count = 0
     for itr in corpus.get_sliding_window_iterator(tokenizer=tokenizer):
         cur, ctx = itr["current"], itr["context"]
+        cur_id = vocab.get_id(cur)
+        ctx_ids = map(vocab.get_id, ctx)
         print(cur, ctx)
+        print(cur_id, list(ctx_ids))
         count += 1
         if count == 10:
             break
