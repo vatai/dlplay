@@ -13,7 +13,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=Path, default=Path("../data/nlp/corpora/BNC"))
     parser.add_argument("--embed-width", type=int, default=512)
-    parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--momentum", type=float, default=0.9)
@@ -75,22 +75,34 @@ def main(args):
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
     debug = False
+    cumulative_loss = 0.0
+    count = 0
+    net.train()
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    net.to(device)
     for epoch in range(args.epochs):
-        count = 0
         print("EPOCH:", epoch)
         corpus = DirCorpus(args.path)
         sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
         expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
         for inputs, target in BatchIter(expanded_iter, args.batch_size):
 
+            inputs = inputs.to(device)
+            target = target.to(device)
             optimizer.zero_grad()
             logits = net(inputs)
             loss = criterion(logits, target)
             loss.backward()
+            cumulative_loss += loss.item()
+            running_loss = cumulative_loss / (count + 1)
             optimizer.step()
 
-            if count & 31 == 0:
-                print(f"step: {count}, loss {loss.item()}")
+            if count & 127 == 0:
+                print(
+                    f"step: {count:6}, "
+                    f"loss {loss.item():6.2f}, "
+                    f"running loss: {(running_loss):6.2f}"
+                )
 
             if debug:
                 if count < 3:
@@ -104,18 +116,8 @@ def main(args):
 
 
 def altmain():
-    print()
-
-    d = [{"cur": "a", "ctx": [1, 2, 3]}, {"cur": "b", "ctx": [5, 6, 7]}]
-    outs = map(lambda t: itertools.product(t["ctx"], [t["cur"]]), d)
-    outs = itertools.chain.from_iterable(outs)
-
-    count = 0
-    for batch in BatchIter(outs, 4):
-        print(batch)
-        count += 1
-        if count == 10:
-            break
+    step, loss = 32, 3.141592
+    print(f"step: {step:6}, loss: {loss:5.2f}")
 
 
 if __name__ == "__main__":
