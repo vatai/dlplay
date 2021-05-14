@@ -18,8 +18,8 @@ def get_args():
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
-    parser.add_argument("--lr", type=float, default=0.001)
-    parser.add_argument("--momentum", type=float, default=0.9)
+    parser.add_argument("--lr", type=float, default=0.01)
+    parser.add_argument("--momentum", type=float, default=0.99)
     return parser.parse_args()
 
 
@@ -59,7 +59,10 @@ class SimpleWord2Vec(nn.Module):
         self.corpus = corpus
         self.vocab = vocab
         self.emb = nn.Embedding(vocab.cnt_words, args.embed_width)
+        nn.init.xavier_normal_(self.emb.weight)
         self.linear = nn.Linear(args.embed_width, vocab.cnt_words)
+        nn.init.xavier_normal_(self.linear.weight)
+        # nn.init.xavier_normal_(self.linear.bias)
 
     def forward(self, batch):
         h = self.emb(batch)
