@@ -5,7 +5,6 @@ from pathlib import Path
 
 import torch
 from torch import nn
-from torch.nn import functional as F
 from vecto.corpus import DirCorpus, tokenization
 from vecto.vocabulary import Vocabulary
 
@@ -79,17 +78,19 @@ def main(args):
         print("iter start")
 
         model.zero_grad()
-        outs = model(inputs)
-        loss = criterion(outs, target)
+        logits = model(inputs)
+        loss = criterion(logits, target)
         loss.backward()
 
-        if count != 10:
+        if count < 10:
             print("INPUTS:", inputs)
             print("TARGET:", target)
             # print("---")
-            print(outs)
-            break
+            print(logits.shape)
             print("iter end")
+            print("LOSS:", loss.item())
+        else:
+            break
         count += 1
 
 
