@@ -58,18 +58,17 @@ class SimpleWord2Vec(nn.Module):
 
     def forward(self, batch):
         h = self.emb(batch)
-        h = self.linear(h)
-        return F.relu(h)
+        return self.linear(h)
 
 
 def main(args):
     print("start word2vec")
     corpus = DirCorpus(args.path)
     vocab = Vocabulary()
+    vocab.load(args.path / "m10/normal")
     tokenizer = tokenization.DEFAULT_TOKENIZER
     criterion = nn.CrossEntropyLoss()
 
-    vocab.load(args.path / "m10/normal")
     model = SimpleWord2Vec(args, corpus, vocab)
     model.train()
 
@@ -84,12 +83,12 @@ def main(args):
         loss = criterion(outs, target)
         loss.backward()
 
-        if count < 10:
-            # print("INPUTS:", inputs)
-            # print("TARGET:", target)
+        if count != 10:
+            print("INPUTS:", inputs)
+            print("TARGET:", target)
             # print("---")
             print(outs)
-            # break
+            break
             print("iter end")
         count += 1
 
