@@ -4,7 +4,7 @@ import itertools
 from pathlib import Path
 
 import torch
-from torch import nn
+from torch import nn, optim
 from vecto.corpus import DirCorpus, tokenization
 from vecto.vocabulary import Vocabulary
 
@@ -14,6 +14,9 @@ def get_args():
     parser.add_argument("--path", type=Path, default=Path("../data/nlp/corpora/BNC"))
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument("--epochs", type=int, default=5)
+    parser.add_argument("--lr", type=float, default=0.001)
+    parser.add_argument("--momentum", type=float, default=0.9)
     return parser.parse_args()
 
 
@@ -66,32 +69,38 @@ def main(args):
     vocab = Vocabulary()
     vocab.load(args.path / "m10/normal")
     tokenizer = tokenization.DEFAULT_TOKENIZER
+
+    net = SimpleWord2Vec(args, corpus, vocab)
     criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
-    model = SimpleWord2Vec(args, corpus, vocab)
-    model.train()
+    debug = False
+    for epoch in range(args.epochs):
+        count = 0
+        print("EPOCH:", epoch)
+        corpus = DirCorpus(args.path)
+        sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
+        expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
+        for inputs, target in BatchIter(expanded_iter, args.batch_size):
 
-    count = 0
-    sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
-    expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
-    for inputs, target in BatchIter(expanded_iter, args.batch_size):
-        print("iter start")
+            optimizer.zero_grad()
+            logits = net(inputs)
+            loss = criterion(logits, target)
+            loss.backward()
+            optimizer.step()
 
-        model.zero_grad()
-        logits = model(inputs)
-        loss = criterion(logits, target)
-        loss.backward()
+            if count & 31 == 0:
+                print(f"step: {count}, loss {loss.item()}")
 
-        if count < 10:
-            print("INPUTS:", inputs)
-            print("TARGET:", target)
-            # print("---")
-            print(logits.shape)
-            print("iter end")
-            print("LOSS:", loss.item())
-        else:
-            break
-        count += 1
+            if debug:
+                if count < 3:
+                    print("INPUTS:", inputs)
+                    print("TARGET:", target)
+                    # print("---")
+                    print("LOSS:", loss.item())
+                else:
+                    break
+            count += 1
 
 
 def altmain():
