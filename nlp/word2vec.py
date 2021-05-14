@@ -11,7 +11,10 @@ from vecto.vocabulary import Vocabulary
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path", type=Path, default=Path("../data/nlp/corpora/BNC"))
+    parser.add_argument(
+        "--corpus-path", type=Path, default=Path("../data/nlp/corpora/BNC")
+    )
+    parser.add_argument("--save-path", type=Path, default=Path("./last.chkp"))
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
@@ -65,9 +68,9 @@ class SimpleWord2Vec(nn.Module):
 
 def main(args):
     print("start word2vec")
-    corpus = DirCorpus(args.path)
+    corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
-    vocab.load(args.path / "m10/normal")
+    vocab.load(args.corpus_path / "m10/normal")
     tokenizer = tokenization.DEFAULT_TOKENIZER
 
     net = SimpleWord2Vec(args, corpus, vocab)
@@ -82,7 +85,7 @@ def main(args):
     net.to(device)
     for epoch in range(args.epochs):
         print("EPOCH:", epoch)
-        corpus = DirCorpus(args.path)
+        corpus = DirCorpus(args.corpus_path)
         sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
         expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
         for inputs, target in BatchIter(expanded_iter, args.batch_size):
@@ -103,6 +106,7 @@ def main(args):
                     f"loss {loss.item():6.2f}, "
                     f"running loss: {(running_loss):6.2f}"
                 )
+                torch.save(net.state_dict(), args.save_path)
 
             if debug:
                 if count < 3:
