@@ -1,4 +1,5 @@
 import argparse
+import functools
 import itertools
 from pathlib import Path
 
@@ -13,6 +14,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=Path, default=Path("../data/nlp/corpora/BNC"))
     parser.add_argument("--embed-width", type=int, default=512)
+    parser.add_argument("--batch-size", type=int, default=8)
     return parser.parse_args()
 
 
@@ -23,9 +25,11 @@ class BatchIter:
         self.collect = collect_fn
 
     def __next__(self):
-        result = self.collect(itertools.islice(self.outs, self.n))
+        slice = itertools.islice(self.outs, self.n)
+        result = self.collect(slice)
         if result != []:
-            return result
+            batch = tuple(zip(*result))
+            return list(map(torch.LongTensor, batch))
         else:
             raise StopIteration
 
@@ -33,8 +37,14 @@ class BatchIter:
         return self
 
 
-def expand_sliding_windows(itr):
-    outs = map(lambda t: itertools.product(t["ctx"], [t["cur"]]), itr)
+def expand_sliding_windows(itr, fn=lambda t: t):
+    outs = map(
+        lambda t: itertools.product(
+            map(fn, t["context"]),
+            [fn(t["current"])],
+        ),
+        itr,
+    )
     return itertools.chain.from_iterable(outs)
 
 
@@ -57,25 +67,31 @@ def main(args):
     corpus = DirCorpus(args.path)
     vocab = Vocabulary()
     tokenizer = tokenization.DEFAULT_TOKENIZER
+    criterion = nn.CrossEntropyLoss()
 
     vocab.load(args.path / "m10/normal")
     model = SimpleWord2Vec(args, corpus, vocab)
     model.train()
 
     count = 0
-    for itr in corpus.get_sliding_window_iterator(tokenizer=tokenizer):
-        cur, ctx = itr["current"], itr["context"]
-        cur_id = vocab.get_id(cur)
-        ctx_ids = list(map(vocab.get_id, ctx))
-        # print(cur, ctx)
-        # print(cur_id, list(ctx_ids))
-        count += 1
+    sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
+    expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
+    for inputs, target in BatchIter(expanded_iter, args.batch_size):
+        print("iter start")
 
-        if len(ctx_ids) > 0:
-            outs = model(torch.LongTensor([[cur_id, ctx_ids[0]]]))
-            print("!!!!!!!!!!", outs)
-        if count == 10:
-            break
+        model.zero_grad()
+        outs = model(inputs)
+        loss = criterion(outs, target)
+        loss.backward()
+
+        if count < 10:
+            # print("INPUTS:", inputs)
+            # print("TARGET:", target)
+            # print("---")
+            print(outs)
+            # break
+            print("iter end")
+        count += 1
 
 
 def altmain():
