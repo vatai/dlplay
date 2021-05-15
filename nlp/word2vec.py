@@ -4,6 +4,7 @@ import itertools
 from pathlib import Path
 
 import torch
+import wandb
 from torch import nn, optim
 from vecto.corpus import DirCorpus, tokenization
 from vecto.vocabulary import Vocabulary
@@ -74,6 +75,9 @@ class SimpleWord2Vec(nn.Module):
 
 
 def main(args):
+    wandb.init(project=__file__)
+    wandb.config.update(args)
+
     print("start word2vec")
     corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
