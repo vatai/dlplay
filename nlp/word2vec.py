@@ -4,10 +4,11 @@ import itertools
 from pathlib import Path
 
 import torch
-import wandb
 from torch import nn, optim
 from vecto.corpus import DirCorpus, tokenization
 from vecto.vocabulary import Vocabulary
+
+import wandb
 
 
 def get_args():
@@ -16,6 +17,7 @@ def get_args():
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("--wandb-project", default="simple word2vec")
     parser.add_argument("--corpus-path", type=Path, default=default_corpus)
     parser.add_argument("--vocab-path", type=Path, default=default_vocab)
     parser.add_argument("--save-path", type=Path, default=Path("./last.chkp"))
@@ -75,13 +77,13 @@ class SimpleWord2Vec(nn.Module):
 
 
 def main(args):
-    wandb.init(project=__file__)
+    wandb.init(project=args.wandb_project)
     wandb.config.update(args)
 
     print("start word2vec")
     corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
-    vocab.load(args.corpus_path / "normal")
+    vocab.load(args.vocab_path / "normal")
     tokenizer = tokenization.DEFAULT_TOKENIZER
 
     net = SimpleWord2Vec(args, corpus, vocab)
@@ -107,6 +109,7 @@ def main(args):
             logits = net(inputs)
             loss = criterion(logits, target)
             loss.backward()
+            wandb.log({"loss": loss.item()})
             cumulative_loss += loss.item()
             running_loss = cumulative_loss / (count + 1)
             optimizer.step()
