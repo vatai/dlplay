@@ -10,16 +10,20 @@ from vecto.vocabulary import Vocabulary
 
 
 def get_args():
+    default_corpus = Path("../data/nlp/corpora/BNC")
+    default_vocab = default_corpus / "m10"
+
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--corpus-path", type=Path, default=Path("../data/nlp/corpora/BNC")
-    )
+
+    parser.add_argument("--corpus-path", type=Path, default=default_corpus)
+    parser.add_argument("--vocab-path", type=Path, default=default_vocab)
     parser.add_argument("--save-path", type=Path, default=Path("./last.chkp"))
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--lr", type=float, default=0.01)
     parser.add_argument("--momentum", type=float, default=0.99)
+
     return parser.parse_args()
 
 
@@ -73,7 +77,7 @@ def main(args):
     print("start word2vec")
     corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
-    vocab.load(args.corpus_path / "m10/normal")
+    vocab.load(args.corpus_path / "normal")
     tokenizer = tokenization.DEFAULT_TOKENIZER
 
     net = SimpleWord2Vec(args, corpus, vocab)
