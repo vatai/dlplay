@@ -89,7 +89,6 @@ def train(batch, device, net, optimizer, criterion):
     logits = net(inputs)
     loss = criterion(logits, target)
     loss.backward()
-    wandb.log({"loss": loss.item()})
     optimizer.step()
     return loss.item()
 
@@ -127,6 +126,7 @@ def main(args):
         for batch in BatchIter(dataset, args.batch_size):
             loss = train(batch, device, net, optimizer, criterion)
             scheduler.step()
+            wandb.log({"loss": loss.item(), "lr": scheduler.get_lr()})
             if count & 127 == 0:
                 print(f"step: {count:6}, " f"loss {loss:6.2f}, ")
                 torch.save(net.state_dict(), args.save_path)
