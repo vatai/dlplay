@@ -117,6 +117,8 @@ def main(args):
         max_lr=args.lr,
         epochs=args.epochs,
         steps_per_epoch=50000,
+        div_factor=1.0,
+        anneal_strategy="linear",
     )
 
     step = 0
