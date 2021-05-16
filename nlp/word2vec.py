@@ -119,7 +119,7 @@ def main(args):
         steps_per_epoch=50000,
     )
 
-    count = 0
+    step = 0
     for epoch in range(args.epochs):
         print("EPOCH:", epoch)
         corpus = DirCorpus(args.corpus_path)
@@ -127,12 +127,12 @@ def main(args):
             loss = train(batch, device, net, optimizer, criterion)
             scheduler.step()
             last_lr = scheduler.get_last_lr()[0]
-            wandb.log({"loss": loss, "lr": float(last_lr)})
-            if count & 127 == 0:
-                print(f"step: {count:6}, " f"loss {loss:6.2f}, " f"lr: {last_lr}")
+            wandb.log({"step": step, "loss": loss, "lr": last_lr})
+            if step & 127 == 0:
+                print(f"step: {step:6}, " f"loss {loss:6.2f}, " f"lr: {last_lr}")
                 torch.save(net.state_dict(), args.save_path)
 
-            count += 1
+            step += 1
 
 
 def altmain():
