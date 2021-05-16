@@ -13,6 +13,7 @@ import wandb
 def get_args():
     default_corpus = Path("../data/nlp/corpora/BNC")
     default_vocab = default_corpus / "m10"
+    default_lr = 0.01
 
     parser = argparse.ArgumentParser()
 
@@ -23,8 +24,12 @@ def get_args():
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
-    parser.add_argument("--lr", type=float, default=0.01)
-    parser.add_argument("--momentum", type=float, default=0.99)
+    parser.add_argument("--lr", type=float, default=default_lr)
+    parser.add_argument("--momentum", type=float, default=0.90)
+    parser.add_argument("--max-lr", type=float, default=default_lr)
+    parser.add_argument("--steps-per-epoch", type=int, default=50000)
+    parser.add_argument("--div-factor", type=float, default=1.0)
+    parser.add_argument("--pct-start", type=float, default=0.0)
 
     return parser.parse_args()
 
@@ -114,10 +119,11 @@ def main(args):
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
     scheduler = optim.lr_scheduler.OneCycleLR(
         optimizer,
-        max_lr=args.lr,
+        max_lr=args.max_lr,
         epochs=args.epochs,
-        steps_per_epoch=50000,
-        div_factor=1.0,
+        steps_per_epoch=args.steps_per_epoch,
+        div_factor=args.div_factor,
+        pct_start=args.pct_start,
         anneal_strategy="linear",
     )
 
