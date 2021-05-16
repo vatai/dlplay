@@ -99,24 +99,23 @@ def main(args):
     wandb.config.update(args)
 
     print("start word2vec")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
     vocab.load(args.vocab_path / "normal")
-    tokenizer = tokenization.DEFAULT_TOKENIZER
 
     net = SimpleWord2Vec(args, corpus, vocab)
+    net.to(device)
+    net.train()
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
     debug = False
     count = 0
-    net.train()
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    net.to(device)
     for epoch in range(args.epochs):
         print("EPOCH:", epoch)
         corpus = DirCorpus(args.corpus_path)
-        sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
+        sliding_windows = corpus.get_sliding_window_iterator()
         expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
         for batch in BatchIter(expanded_iter, args.batch_size):
             loss = train(batch, device, net, optimizer, criterion)
