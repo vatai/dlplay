@@ -1,5 +1,4 @@
 import argparse
-import functools
 import itertools
 from pathlib import Path
 
@@ -61,7 +60,7 @@ def expand_sliding_windows(itr, fn=lambda t: t):
 
 
 class SimpleWord2Vec(nn.Module):
-    def __init__(self, args, corpus, vocab):
+    def __init__(self, args, corpus: DirCorpus, vocab: Vocabulary):
         super().__init__()
         self.corpus = corpus
         self.vocab = vocab
@@ -69,11 +68,30 @@ class SimpleWord2Vec(nn.Module):
         nn.init.xavier_normal_(self.emb.weight)
         self.linear = nn.Linear(args.embed_width, vocab.cnt_words)
         nn.init.xavier_normal_(self.linear.weight)
-        # nn.init.xavier_normal_(self.linear.bias)
 
     def forward(self, batch):
         h = self.emb(batch)
         return self.linear(h)
+
+
+def evaluate(net: SimpleWord2Vec, vocab: Vocabulary):
+    vemb = WordEmbeddingsDense()
+    vemb.matrix = net.emb.weight.detach().numpy()
+    word = vocab.get_frequency(1)
+    similar = vemb.get_most_similar_words(word)
+    return word, similar
+
+
+def train(batch, device, net, optimizer, criterion):
+    inputs = batch[0].to(device)
+    target = batch[1].to(device)
+    optimizer.zero_grad()
+    logits = net(inputs)
+    loss = criterion(logits, target)
+    loss.backward()
+    wandb.log({"loss": loss.item()})
+    optimizer.step()
+    return loss.item()
 
 
 def main(args):
@@ -91,7 +109,6 @@ def main(args):
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
 
     debug = False
-    cumulative_loss = 0.0
     count = 0
     net.train()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -101,25 +118,10 @@ def main(args):
         corpus = DirCorpus(args.corpus_path)
         sliding_windows = corpus.get_sliding_window_iterator(tokenizer=tokenizer)
         expanded_iter = expand_sliding_windows(sliding_windows, vocab.get_id)
-        for inputs, target in BatchIter(expanded_iter, args.batch_size):
-
-            inputs = inputs.to(device)
-            target = target.to(device)
-            optimizer.zero_grad()
-            logits = net(inputs)
-            loss = criterion(logits, target)
-            loss.backward()
-            wandb.log({"loss": loss.item()})
-            cumulative_loss += loss.item()
-            running_loss = cumulative_loss / (count + 1)
-            optimizer.step()
-
+        for batch in BatchIter(expanded_iter, args.batch_size):
+            loss = train(batch, device, net, optimizer, criterion)
             if count & 127 == 0:
-                print(
-                    f"step: {count:6}, "
-                    f"loss {loss.item():6.2f}, "
-                    f"running loss: {(running_loss):6.2f}"
-                )
+                print(f"step: {count:6}, " f"loss {loss:6.2f}, ")
                 torch.save(net.state_dict(), args.save_path)
 
             if debug:
@@ -127,18 +129,18 @@ def main(args):
                     print("INPUTS:", inputs)
                     print("TARGET:", target)
                     # print("---")
-                    print("LOSS:", loss.item())
+                    print("LOSS:", loss)
                 else:
                     break
             count += 1
 
 
 def altmain():
-    step, loss = 32, 3.141592
-    print(f"step: {step:6}, loss: {loss:5.2f}")
+    emb = nn.Embedding(3, 4)
+    print(emb.weight.detach().numpy())
 
 
 if __name__ == "__main__":
     args = get_args()
-    main(args)
     # altmain()
+    main(args)
