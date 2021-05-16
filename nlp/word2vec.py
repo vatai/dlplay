@@ -103,7 +103,7 @@ def main(args):
     vocab = Vocabulary()
     vocab.load(args.vocab_path / "normal")
     sliding_windows = corpus.get_sliding_window_iterator()
-    dataset = list(expand_sliding_windows(sliding_windows, vocab.get_id))
+    dataset = expand_sliding_windows(sliding_windows, vocab.get_id)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = SimpleWord2Vec(args, corpus, vocab)
@@ -116,7 +116,7 @@ def main(args):
         optimizer,
         max_lr=args.lr,
         epochs=args.epochs,
-        steps_per_epoch=len(dataset),
+        steps_per_epoch=50000,
     )
 
     count = 0
@@ -126,9 +126,10 @@ def main(args):
         for batch in BatchIter(dataset, args.batch_size):
             loss = train(batch, device, net, optimizer, criterion)
             scheduler.step()
-            wandb.log({"loss": loss.item(), "lr": scheduler.get_lr()})
+            last_lr = scheduler.get_last_lr()[0]
+            wandb.log({"loss": loss, "lr": float(last_lr)})
             if count & 127 == 0:
-                print(f"step: {count:6}, " f"loss {loss:6.2f}, ")
+                print(f"step: {count:6}, " f"loss {loss:6.2f}, " f"lr: {last_lr}")
                 torch.save(net.state_dict(), args.save_path)
 
             count += 1
