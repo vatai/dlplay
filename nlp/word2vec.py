@@ -24,8 +24,12 @@ def get_args():
     parser.add_argument("--embed-width", type=int, default=512)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
-    parser.add_argument("--lr", type=float, default=default_lr)
-    parser.add_argument("--momentum", type=float, default=0.00)
+    # SGD
+    # parser.add_argument("--lr", type=float, default=default_lr)
+    # parser.add_argument("--momentum", type=float, default=0.00)
+    # AdamW
+    # None currently
+    # OneCycleLR
     parser.add_argument("--max-lr", type=float, default=default_lr)
     parser.add_argument("--steps-per-epoch", type=int, default=50000)
     parser.add_argument("--div-factor", type=float, default=1.0)
@@ -116,7 +120,7 @@ def main(args):
     net.train()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
+    optimizer = optim.AdamW(net.parameters())
     scheduler = optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=args.max_lr,
