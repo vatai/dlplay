@@ -26,13 +26,13 @@ def get_args():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--optimizer", type=str, default="SGD")
+
     # SGD
     parser.add_argument("--lr", type=float, default=default_lr)
     parser.add_argument("--momentum", type=float, default=0.00)
     # Adam
-    # parser.add_argument("--lr", type=float, default=default_lr) # same as SGD
     # AdamW
-    # None currently
+
     # OneCycleLR
     parser.add_argument("--max-lr", type=float, default=default_lr)
     parser.add_argument("--steps-per-epoch", type=int, default=500000)
@@ -113,11 +113,11 @@ def main(args):
     net.train()
 
     criterion = nn.CrossEntropyLoss()
-    if args.optim == "SGD":
+    if args.optimizer == "SGD":
         optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=args.momentum)
-    elif args.optim == "Adam":
+    elif args.optimizer == "Adam":
         optimizer = optim.Adam(net.parameters(), lr=args.lr)
-    elif args.optim == "AdamW":
+    elif args.optimizer == "AdamW":
         optimizer = optim.AdamW(net.parameters(), lr=args.lr)
     else:
         raise ValueError("Wrong --optim")
