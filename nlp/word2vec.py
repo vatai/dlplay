@@ -47,9 +47,9 @@ class NgramDataset(IterableDataset):
         self.vocab = vocab
 
     def _get_context_current_product(self, wnd_dict):
-        context_ids = map(self.vocab.get_id, wnd_dict["context"])
-        current_id_as_list = [self.vocab.get_id(wnd_dict["current"])]
-        return itertools.product(context_ids, current_id_as_list)
+        cxt_ids = filter(bool, map(self.vocab.get_id, wnd_dict["context"]))
+        cur_ids = filter(bool, [self.vocab.get_id(wnd_dict["current"])])
+        return itertools.product(cxt_ids, cur_ids)
 
     def __iter__(self):
         sw_dicts = self.corpus.get_sliding_window_iterator()
