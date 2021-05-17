@@ -120,7 +120,7 @@ def main(args):
     net.train()
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(net.parameters())
+    optimizer = optim.Adam(net.parameters(), lr=0.00001)
     scheduler = optim.lr_scheduler.OneCycleLR(
         optimizer,
         max_lr=args.max_lr,
@@ -139,11 +139,11 @@ def main(args):
             loss = train(batch, device, net, optimizer, criterion)
             scheduler.step()
             last_lr = scheduler.get_last_lr()[0]
+
             wandb.log({"step": step, "loss": loss, "lr": last_lr})
             if step & 127 == 0:
                 print(f"step: {step:6}, " f"loss {loss:6.2f}, " f"lr: {last_lr}")
                 torch.save(net.state_dict(), args.save_path)
-
             step += 1
 
 
