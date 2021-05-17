@@ -144,7 +144,7 @@ def main(args):
 
             wandb.log({"step": step, "loss": loss, "lr": last_lr})
             if step & 127 == 0:
-                print(f"step: {step:6}, " f"loss {loss:6.2f}, " f"lr: {last_lr}")
+                print(f"step: {step:6}, loss {loss:6.2f}, lr: {last_lr}")
                 torch.save(net.state_dict(), args.save_path)
             step += 1
 
