@@ -33,7 +33,7 @@ def get_args():
     # None currently
     # OneCycleLR
     parser.add_argument("--max-lr", type=float, default=default_lr)
-    parser.add_argument("--steps-per-epoch", type=int, default=50000)
+    parser.add_argument("--steps-per-epoch", type=int, default=500000)
     parser.add_argument("--div-factor", type=float, default=1.0)
     parser.add_argument("--pct-start", type=float, default=0.0)
 
