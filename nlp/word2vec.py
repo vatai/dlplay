@@ -3,12 +3,11 @@ import itertools
 from pathlib import Path
 
 import torch
+import wandb
 from torch import nn, optim
 from torch.utils.data import DataLoader, IterableDataset
 from vecto.corpus import DirCorpus
 from vecto.vocabulary import Vocabulary
-
-import wandb
 
 
 def get_args():
@@ -50,7 +49,7 @@ class NgramDataset(IterableDataset):
     def _get_context_current_product(self, wnd_dict):
         cxt_ids = filter(bool, map(self.vocab.get_id, wnd_dict["context"]))
         cur_ids = filter(bool, [self.vocab.get_id(wnd_dict["current"])])
-        return itertools.product(cxt_ids, cur_ids)
+        return itertools.product(cur_ids, cxt_ids)
 
     def __iter__(self):
         sw_dicts = self.corpus.get_sliding_window_iterator()
