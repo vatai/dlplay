@@ -4,7 +4,8 @@ from pathlib import Path
 
 import torch
 from torch import nn, optim
-from vecto.corpus import DirCorpus, tokenization
+from torch.utils.data import DataLoader, IterableDataset
+from vecto.corpus import DirCorpus
 from vecto.vocabulary import Vocabulary
 
 import wandb
@@ -40,34 +41,24 @@ def get_args():
     return parser.parse_args()
 
 
-class BatchIter:
-    def __init__(self, outs, n, collect_fn=list):
-        self.outs = outs
-        self.n = n
-        self.collect = collect_fn
+class NgramDataset(IterableDataset):
+    def __init__(self, corpus: DirCorpus, vocab: Vocabulary):
+        self.corpus = corpus
+        self.vocab = vocab
 
-    def __next__(self):
-        slice = itertools.islice(self.outs, self.n)
-        result = self.collect(slice)
-        if result != []:
-            batch = tuple(zip(*result))
-            return list(map(torch.LongTensor, batch))
-        else:
-            raise StopIteration
+    def _get_context_current_product(self, wnd_dict):
+        context_ids = map(self.vocab.get_id, wnd_dict["context"])
+        current_id_as_list = [self.vocab.get_id(wnd_dict["current"])]
+        return itertools.product(context_ids, current_id_as_list)
 
     def __iter__(self):
-        return self
+        sw_dicts = self.corpus.get_sliding_window_iterator()
+        ctx_cur_prods = map(self._get_context_current_product, sw_dicts)
+        self.iterator = itertools.chain.from_iterable(ctx_cur_prods)
+        return self.iterator
 
-
-def expand_sliding_windows(itr, fn=lambda t: t):
-    outs = map(
-        lambda t: itertools.product(
-            map(fn, t["context"]),
-            [fn(t["current"])],
-        ),
-        itr,
-    )
-    return itertools.chain.from_iterable(outs)
+    def __next__(self):
+        return next(self.iterator)
 
 
 class SimpleWord2Vec(nn.Module):
@@ -113,8 +104,7 @@ def main(args):
     corpus = DirCorpus(args.corpus_path)
     vocab = Vocabulary()
     vocab.load(args.vocab_path / "normal")
-    sliding_windows = corpus.get_sliding_window_iterator()
-    dataset = expand_sliding_windows(sliding_windows, vocab.get_id)
+    dataset = NgramDataset(corpus, vocab)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = SimpleWord2Vec(args, corpus, vocab)
@@ -136,8 +126,7 @@ def main(args):
     step = 0
     for epoch in range(args.epochs):
         print("EPOCH:", epoch)
-        corpus = DirCorpus(args.corpus_path)
-        for batch in BatchIter(dataset, args.batch_size):
+        for batch in DataLoader(dataset, args.batch_size):
             loss = train(batch, device, net, optimizer, criterion)
             scheduler.step()
             last_lr = scheduler.get_last_lr()[0]
