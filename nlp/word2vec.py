@@ -13,7 +13,7 @@ import wandb
 def get_args():
     default_corpus = Path("../data/nlp/corpora/BNC")
     default_vocab = default_corpus / "m10"
-    default_lr = 0.01
+    default_lr = 0.0001
 
     parser = argparse.ArgumentParser()
 
@@ -27,6 +27,8 @@ def get_args():
     # SGD
     # parser.add_argument("--lr", type=float, default=default_lr)
     # parser.add_argument("--momentum", type=float, default=0.00)
+    # Adam
+    # None currently
     # AdamW
     # None currently
     # OneCycleLR
