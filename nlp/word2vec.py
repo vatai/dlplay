@@ -1,13 +1,20 @@
 import argparse
+import datetime
 import itertools
 from pathlib import Path
 
 import torch
-import wandb
 from torch import nn, optim
 from torch.utils.data import DataLoader, IterableDataset
 from vecto.corpus import DirCorpus
 from vecto.vocabulary import Vocabulary
+
+import wandb
+
+
+def get_utc_timestamp():
+    utcnow = datetime.datetime.utcnow()
+    return utcnow.strftime("%Y%m%d_%H%M%S_UTC")
 
 
 def get_args():
