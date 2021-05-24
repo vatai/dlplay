@@ -8,5 +8,6 @@ python -m \
 	vecto.embeddings.train_word2vec \
 	--gpu=0 \
 	--epoch=10 \
-	--path_out=vecto_w2v \
-	--path_corpus=../BNC/AA/ 
+	--path_out=w2v \
+	--path_corpus=../BNC/AA/ \
+        --path_vocab=../BNC/m100/normal
