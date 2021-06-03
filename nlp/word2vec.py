@@ -3,6 +3,7 @@ import datetime
 import itertools
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, IterableDataset
@@ -151,6 +152,25 @@ def main(args):
                 print(f"step: {step:6}, loss {loss:6.2f}, lr: {last_lr}")
                 torch.save(net.state_dict(), args.save_path)
             step += 1
+
+    save_weights_numpy(net)
+
+
+def save_weights_numpy(net):
+    weights = net.emb.weight.detach().numpy()
+    with open(str(args.save_path) + ".npy", "wb") as file:
+        np.save(file, weights)
+
+
+def load_main(args):
+    print("loading")
+    corpus = DirCorpus(args.corpus_path)
+    vocab = Vocabulary()
+    vocab.load(args.vocab_path / "normal")
+    net = SimpleWord2Vec(args, corpus, vocab)
+    net.load_state_dict(torch.load(args.save_path))
+    print(net)
+    save_weights_numpy(net)
 
 
 def altmain():
