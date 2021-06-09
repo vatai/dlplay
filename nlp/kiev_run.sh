@@ -1,3 +1,10 @@
+#!/bin/bash
+
+. ~/.bashrc
+
+set_env /work/opt/cuda/nccl_2.7.8-1+cuda10.2_x86_64/
+set_env /work/opt/cuda/cudnn-10.0-linux-x64-v7.4.2.24/
+
 # git pull
 # python word2vec.py --corpus-path ../enwiki_2021.01/AA --vocab-path ../enwiki_2021.01/m100
 # python word2vec.py --corpus-path ../BNC/AA --vocab-path ../BNC/m100
