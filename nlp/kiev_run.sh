@@ -20,7 +20,7 @@ set_env /work/opt/cuda/cudnn-10.0-linux-x64-v7.4.2.24/
 
 # python word2vec.py --corpus-path=../BNC/AA --vocab-path ../BNC/m100 --lr=0.001 --max-lr=0.05 --pct-start=0.1 --momentum=0.5 --steps-per-epoch=50000 --div-factor=25
 
-python word2vec.py --corpus-path=../BNC/AA --vocab-path ../BNC/m100 --lr=0.001 --max-lr=0.05 --pct-start=0.1 --momentum=0.5 --steps-per-epoch=50000 --div-factor=25 --embed-width=300
+python word2vec.py --corpus-path=../BNC/AA --vocab-path ../BNC/m100 --lr=0.001 --max-lr=0.05 --pct-start=0.1 --momentum=0.5 --steps-per-epoch=500000 --div-factor=25 --embed-width=300
 
 mv last.chkp.npy tmp/normal/
 
