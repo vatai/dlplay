@@ -14,3 +14,11 @@
 # python word2vec.py --corpus-path=../BNC/AA --vocab-path ../BNC/m100 --lr=0.001 --max-lr=0.05 --pct-start=0.1 --momentum=0.5 --steps-per-epoch=50000 --div-factor=25
 
 python word2vec.py --corpus-path=../BNC/AA --vocab-path ../BNC/m100 --lr=0.001 --max-lr=0.05 --pct-start=0.1 --momentum=0.5 --steps-per-epoch=50000 --div-factor=25 --embed-width=300
+
+mv last.chkp.npy tmp/normal/
+
+rm -rf my_analogy/*
+
+python -m vecto benchmark analogy --method LRCos --path_out=my_analogy tmp/normal/ BATS_3.0
+
+./analogy_plot.py my_analogy
