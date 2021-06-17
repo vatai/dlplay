@@ -147,7 +147,7 @@ def main(args):
             scheduler.step()
             last_lr = scheduler.get_last_lr()[0]
 
-            if step & 127 == 0:
+            if step & ((2 ** 12) - 1) == 0:
                 wandb.log({"step": step, "loss": loss, "lr": last_lr})
                 print(f"step: {step:6}, loss {loss:6.2f}, lr: {last_lr}")
             step += 1
