@@ -147,17 +147,17 @@ def main(args):
             scheduler.step()
             last_lr = scheduler.get_last_lr()[0]
 
-            wandb.log({"step": step, "loss": loss, "lr": last_lr})
             if step & 127 == 0:
+                wandb.log({"step": step, "loss": loss, "lr": last_lr})
                 print(f"step: {step:6}, loss {loss:6.2f}, lr: {last_lr}")
-                torch.save(net.state_dict(), args.save_path)
             step += 1
+        torch.save(net.state_dict(), args.save_path)
 
     save_weights_numpy(net)
 
 
 def save_weights_numpy(net):
-    weights = net.emb.weight.detach().numpy()
+    weights = net.cpu().emb.weight.detach().numpy()
     with open(str(args.save_path) + ".npy", "wb") as file:
         np.save(file, weights)
 
