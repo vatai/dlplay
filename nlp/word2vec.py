@@ -2,6 +2,7 @@ import argparse
 import datetime
 import itertools
 from pathlib import Path
+from timeit import default_timer as timer
 
 import numpy as np
 import torch
@@ -140,6 +141,7 @@ def main(args):
     )
 
     step = 0
+    start = timer()
     for epoch in range(args.epochs):
         print("EPOCH:", epoch)
         for batch in DataLoader(dataset, args.batch_size):
@@ -150,6 +152,8 @@ def main(args):
             if step & ((2 ** 12) - 1) == 0:
                 wandb.log({"step": step, "loss": loss, "lr": last_lr})
                 print(f"step: {step:6}, loss {loss:6.2f}, lr: {last_lr}")
+                end = timer()
+                print(f"DONE in: {end - start}")
             step += 1
         torch.save(net.state_dict(), args.save_path)
 
