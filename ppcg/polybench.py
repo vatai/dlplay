@@ -12,8 +12,8 @@ def error_msg(result: subprocess.CompletedProcess):
 class PolybenchPpcg:
     def __init__(
         self,
-        polybench_dir="~/code/polybench-c-4.2.1-beta/",
         benchmark_dir="datamining/correlation",
+        polybench_dir="~/code/polybench-c-4.2.1-beta/",
     ):
         self.polybench_dir = Path(polybench_dir).expanduser()
         self.ppcg_dir = Path("~/code/ppcg").expanduser()
@@ -70,14 +70,14 @@ class PolybenchPpcg:
 
     def run_orig(self):
         self.gcc(self.orig_c_file, self.orig_bin_file)
-        orig_time = self.run_bin(self.orig_bin_file)
-        print(orig_time)
+        time = self.run_bin(self.orig_bin_file)
+        print(time)
 
     def run_ppcg(self):
         self.create_ppcg_c_file()
         self.gcc(self.ppcg_c_file, self.ppcg_bin_file)
-        ppcg_time = self.run_bin(self.ppcg_bin_file)
-        print(ppcg_time)
+        time = self.run_bin(self.ppcg_bin_file)
+        print(time)
 
 
 def main():
@@ -86,7 +86,9 @@ def main():
         if i.name == i.parent.name + ".c":
             benchmark_dir = str(i.parent).replace(str(polybench_dir), "")[1:]
             print(benchmark_dir)
+            pp = PolybenchPpcg(benchmark_dir)
+            pp.run_orig()
+            pp.run_ppcg()
 
 
-pp = PolybenchPpcg()
-pp.run_ppcg()
+main()
